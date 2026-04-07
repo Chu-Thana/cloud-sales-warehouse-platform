@@ -1,19 +1,21 @@
 import boto3
 from pathlib import Path
+from datetime import datetime
 
-# config
-BUCKET_NAME = "sales-analytics-lakehouse-thana"  
+BUCKET_NAME = "sales-analytics-lakehouse-thana"
 LOCAL_FILE = Path("data/sample/superstore_cleaned.parquet")
-S3_KEY = "raw/batch/superstore/superstore_cleaned.parquet"
 
 def main():
+    ingestion_date = datetime.now().strftime("%Y-%m-%d")
+    s3_key = f"raw/batch/superstore/ingestion_date={ingestion_date}/superstore_cleaned.parquet"
+
     print("🚀 Connecting to S3...")
     s3 = boto3.client("s3")
 
     print("📤 Uploading file...")
-    s3.upload_file(str(LOCAL_FILE), BUCKET_NAME, S3_KEY)
+    s3.upload_file(str(LOCAL_FILE), BUCKET_NAME, s3_key)
 
-    print(f"✅ Uploaded to s3://{BUCKET_NAME}/{S3_KEY}")
+    print(f"✅ Uploaded to s3://{BUCKET_NAME}/{s3_key}")
 
 if __name__ == "__main__":
     main()
