@@ -5,12 +5,15 @@ from pathlib import Path
 from typing import Any
 
 
-PROJECT3_ROOT = Path(
-    os.getenv("PROJECT3_ROOT", r"E:\dev\vendor-payments-streaming-pipeline")
+STREAMING_PIPELINE_ROOT = Path(
+    os.getenv(
+        "VENDOR_STREAMING_CONTAINER_PATH",
+        r"E:\dev\vendor-payments-streaming-pipeline",
+    )
 )
 
 INPUT_JSONL_FILE = (
-    PROJECT3_ROOT
+    STREAMING_PIPELINE_ROOT
     / "output"
     / "staging"
     / "vendor_payments_streaming_staging.jsonl"

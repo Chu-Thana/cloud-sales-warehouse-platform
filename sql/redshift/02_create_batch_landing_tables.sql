@@ -1,6 +1,4 @@
-DROP TABLE IF EXISTS landing.spending_by_fiscal_year;
-
-CREATE TABLE landing.spending_by_fiscal_year (
+CREATE TABLE IF NOT EXISTS landing.vendor_payments_streaming_events (
     fiscal_year                 INTEGER,
     total_vouchers_paid         DECIMAL(20, 2),
     total_vouchers_pending      DECIMAL(20, 2),
@@ -14,9 +12,7 @@ CREATE TABLE landing.spending_by_fiscal_year (
 );
 
 
-DROP TABLE IF EXISTS landing.spending_by_department;
-
-CREATE TABLE landing.spending_by_department (
+CREATE TABLE IF NOT EXISTS landing.spending_by_department (
     fiscal_year                 INTEGER,
     organization_group          VARCHAR(256),
     department                  VARCHAR(256),
@@ -32,9 +28,7 @@ CREATE TABLE landing.spending_by_department (
 );
 
 
-DROP TABLE IF EXISTS landing.spending_by_supplier_top_n;
-
-CREATE TABLE landing.spending_by_supplier_top_n (
+CREATE TABLE IF NOT EXISTS landing.spending_by_supplier_top_n (
     supplier_name               VARCHAR(512),
     total_vouchers_paid         DECIMAL(20, 2),
     total_vouchers_pending      DECIMAL(20, 2),
@@ -48,9 +42,7 @@ CREATE TABLE landing.spending_by_supplier_top_n (
 );
 
 
-DROP TABLE IF EXISTS landing.fund_category_summary;
-
-CREATE TABLE landing.fund_category_summary (
+CREATE TABLE IF NOT EXISTS landing.fund_category_summary (
     fiscal_year                 INTEGER,
     fund_type                   VARCHAR(256),
     fund_category               VARCHAR(256),
@@ -66,9 +58,7 @@ CREATE TABLE landing.fund_category_summary (
 );
 
 
-DROP TABLE IF EXISTS landing.pending_by_department;
-
-CREATE TABLE landing.pending_by_department (
+CREATE TABLE IF NOT EXISTS landing.pending_by_department (
     fiscal_year                 INTEGER,
     department                  VARCHAR(256),
     total_vouchers_paid         DECIMAL(20, 2),

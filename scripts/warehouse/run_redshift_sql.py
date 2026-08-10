@@ -1,0 +1,130 @@
+from __future__ import annotations
+
+import os
+import sys
+import time
+from pathlib import Path
+from typing import Any
+
+import boto3
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+AWS_REGION = os.getenv(
+    "AWS_REGION",
+    "ap-southeast-1",
+)
+
+REDSHIFT_WORKGROUP = os.getenv(
+    "REDSHIFT_WORKGROUP",
+    "default-workgroup",
+)
+
+REDSHIFT_DATABASE = os.getenv(
+    "REDSHIFT_DATABASE",
+    "dev",
+)
+
+POLL_INTERVAL_SECONDS = 1
+STATEMENT_TIMEOUT_SECONDS = 300
+
+def wait_for_statement(
+    client: Any,
+    statement_id: str,
+) -> dict[str, Any]:
+    started_at = time.monotonic()
+
+    while True:
+        response = client.describe_statement(
+            Id=statement_id,
+        )
+        status = response["Status"]
+
+        if status == "FINISHED":
+            return response
+
+        if status in {"FAILED", "ABORTED"}:
+            error_message = response.get(
+                "Error",
+                "Unknown Redshift statement error",
+            )
+            raise RuntimeError(
+                f"Redshift statement {status.lower()}: "
+                f"{error_message}"
+            )
+
+        elapsed_seconds = (
+            time.monotonic() - started_at
+        )
+
+        if elapsed_seconds > STATEMENT_TIMEOUT_SECONDS:
+            raise TimeoutError(
+                "Redshift statement exceeded "
+                f"{STATEMENT_TIMEOUT_SECONDS} seconds."
+            )
+
+        time.sleep(POLL_INTERVAL_SECONDS)
+
+def execute_sql_file(
+    client: Any,
+    sql_file: Path,
+) -> None:
+    if not sql_file.exists():
+        raise FileNotFoundError(
+            f"SQL file not found: {sql_file}"
+        )
+
+    sql = sql_file.read_text(
+        encoding="utf-8",
+    )
+
+    if not sql.strip():
+        raise ValueError(
+            f"SQL file is empty: {sql_file}"
+        )
+
+    response = client.execute_statement(
+        WorkgroupName=REDSHIFT_WORKGROUP,
+        Database=REDSHIFT_DATABASE,
+        Sql=sql,
+    )
+
+    statement_id = response["Id"]
+
+    wait_for_statement(
+        client=client,
+        statement_id=statement_id,
+    )
+
+def main() -> None:
+    if len(sys.argv) != 2:
+        raise ValueError(
+            "Usage: python run_redshift_sql.py "
+            "<sql_file_path>"
+        )
+
+    sql_file = Path(sys.argv[1])
+
+    if not sql_file.is_absolute():
+        sql_file = PROJECT_ROOT / sql_file
+
+    client = boto3.client(
+        "redshift-data",
+        region_name=AWS_REGION,
+    )
+
+    print(f"Running Redshift SQL: {sql_file}")
+
+    execute_sql_file(
+        client=client,
+        sql_file=sql_file,
+    )
+
+    print(
+        "Redshift SQL execution completed successfully."
+    )
+
+
+if __name__ == "__main__":
+    main()

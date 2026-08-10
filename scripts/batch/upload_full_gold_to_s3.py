@@ -6,9 +6,9 @@ from pathlib import Path
 import boto3
 
 
-PROJECT1_ROOT = Path(
+BATCH_ETL_ROOT = Path(
     os.getenv(
-        "PROJECT1_ROOT",
+        "VENDOR_BATCH_ETL_CONTAINER_PATH",
         r"E:\dev\vendor-payments-etl-analytics",
     )
 )
@@ -24,7 +24,7 @@ S3_PREFIX = os.getenv(
 )
 
 FULL_GOLD_DIR = (
-    PROJECT1_ROOT
+    BATCH_ETL_ROOT
     / "data"
     / "processed"
     / "gold"

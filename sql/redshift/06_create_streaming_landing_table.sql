@@ -1,6 +1,4 @@
-DROP TABLE IF EXISTS landing.vendor_payments_streaming_events;
-
-CREATE TABLE landing.vendor_payments_streaming_events (
+CREATE TABLE IF NOT EXISTS landing.vendor_payments_streaming_events (
     business_composite_key                    VARCHAR(512),
     dedup_status                              VARCHAR(64),
     department                                VARCHAR(512),
