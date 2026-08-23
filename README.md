@@ -1,139 +1,142 @@
 # ☁️ Vendor Payments Cloud Data Platform
 
-![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python\&logoColor=white)
-![Cloud](https://img.shields.io/badge/Cloud-AWS-FF9900?logo=amazonaws\&logoColor=white)
-![Data Lake](https://img.shields.io/badge/Data%20Lake-Amazon%20S3-569A31?logo=amazons3\&logoColor=white)
-![Query](https://img.shields.io/badge/Query-Amazon%20Athena-232F3E?logo=amazonaws\&logoColor=white)
-![Warehouse](https://img.shields.io/badge/Warehouse-Redshift%20Serverless-8C4FFF?logo=amazonredshift\&logoColor=white)
-![Testing](https://img.shields.io/badge/Testing-34%20Passed-0A9EDC?logo=pytest\&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white)
+![Cloud](https://img.shields.io/badge/Cloud-AWS-FF9900?logo=amazonaws&logoColor=white)
+![Data Lake](https://img.shields.io/badge/Data%20Lake-Amazon%20S3-569A31?logo=amazons3&logoColor=white)
+![Query](https://img.shields.io/badge/Query-Amazon%20Athena-232F3E?logo=amazonaws&logoColor=white)
+![Warehouse](https://img.shields.io/badge/Warehouse-Redshift%20Serverless-8C4FFF?logo=amazonredshift&logoColor=white)
+![Testing](https://img.shields.io/badge/Testing-34%20Passed-0A9EDC?logo=pytest&logoColor=white)
 ![Code Quality](https://img.shields.io/badge/Code%20Quality-Ruff-8A2BE2)
 ![CI](https://github.com/Chu-Thana/vendor-payments-cloud-data-platform/actions/workflows/ci.yml/badge.svg)
 
-AWS cloud and warehouse layer for the Vendor Payments data platform.
+AWS cloud and warehouse layer for the Vendor Payments Data Platform.
 
-This project publishes trusted Batch and Streaming outputs to Amazon S3, exposes serverless query access through Amazon Athena, loads validated datasets into Amazon Redshift Serverless, creates analytics views, and generates machine-readable warehouse execution metadata.
+This repository publishes trusted Batch and Streaming outputs to Amazon S3, provides serverless SQL access through Amazon Athena, loads curated datasets into Amazon Redshift Serverless, creates analytics views, validates warehouse data quality, and generates machine-readable execution metadata.
 
 ---
 
 ## 📌 Project Summary
 
-The project demonstrates how validated Batch and Streaming outputs can be organized into a cloud data lake and extended into a serverless analytics warehouse.
+The project demonstrates how validated outputs from independent Batch and Streaming pipelines can be extended into a cloud analytics platform.
 
-The Cloud Data Platform is responsible for:
+The Cloud Data Platform owns:
 
-* Publishing trusted Batch outputs to Amazon S3
-* Converting validated Streaming JSONL events into curated CSV
-* Organizing Batch and Streaming data into separate S3 zones
-* Creating Amazon Athena external tables over S3
-* Loading Batch and Streaming datasets into Amazon Redshift Serverless
-* Creating landing tables and analytics views
-* Validating event-ID completeness and uniqueness
-* Generating Redshift runtime metadata
-* Enforcing a metadata contract before writing the execution artifact
-* Providing automated tests, Ruff validation, and GitHub Actions CI
+- Amazon S3 publishing and storage structure
+- Streaming JSONL-to-CSV conversion logic used for cloud publishing
+- Amazon Athena table definitions and analytics SQL
+- Amazon Redshift schemas, landing tables, COPY operations, and analytics views
+- Batch and Streaming warehouse validation
+- Redshift runtime metadata generation
+- Automated tests, Ruff linting, and GitHub Actions CI
 
-The core design principle is:
+The core responsibility boundary is:
 
 ```text
-The Cloud Data Platform owns cloud storage,
-query access, warehouse processing,
-analytics views, and runtime metadata.
+Batch and Streaming pipelines
+→ produce validated upstream data
 
-Airflow invokes and validates these capabilities
-without taking ownership of their implementation.
+Cloud Data Platform
+→ owns S3, Athena, Redshift, analytics SQL,
+  warehouse validation, and runtime metadata
+
+Airflow
+→ invokes Cloud processing in execution order
+  and validates the resulting outputs
 ```
+
+Airflow orchestrates these Cloud capabilities, while the implementation remains in this repository.
 
 ---
 
 ## 🧭 Architecture
 
-![Vendor Payments Cloud Data Flow](assets/redshift/00_cloud_data_platform_architecture.png)
+![Vendor Payments Cloud Data Platform Architecture](assets/redshift/00_cloud_data_platform_architecture.png)
 
-The platform combines two upstream data-processing paths:
+The platform supports two upstream processing paths:
 
-* **Batch ETL Pipeline** — produces validated Silver and Gold analytics outputs
-* **Streaming Pipeline** — produces validated and deduplicated event data
+- **Batch ETL Pipeline** — produces validated Silver and Gold analytics outputs
+- **Kafka Streaming Pipeline** — produces validated and deduplicated JSONL staging events
 
-The cloud layer publishes these outputs to Amazon S3 and provides two analytics paths:
+The Cloud layer then provides durable storage and two analytics paths:
 
 ```text
-Amazon S3
-├── Amazon Athena
-│   └── Serverless SQL queries over S3
-│
-└── Amazon Redshift Serverless
-    ├── Landing tables
-    └── Analytics views
+                         ┌─→ Amazon Athena
+Upstream Data → S3 ──────┤   Serverless SQL over S3
+                         │
+                         └─→ Amazon Redshift Serverless
+                             Landing tables
+                             → Analytics views
+                             → Warehouse validation
 ```
-
-External Airflow orchestration coordinates execution and validates the generated runtime metadata, while this repository retains ownership of Cloud and Warehouse processing.
 
 ### Responsibility Boundaries
 
-* **Batch pipeline** owns Raw-to-Silver-to-Gold transformation logic.
-* **Streaming pipeline** owns Kafka ingestion, validation, deduplication, and staging output.
-* **Cloud platform** owns S3 publishing, Athena definitions, Redshift loading, analytics views, and Redshift runtime metadata.
-* **Airflow orchestration** owns execution coordination, dependency validation, and cross-project summary reporting.
-* **API serving layer** exposes trusted Batch and Streaming analytics to downstream applications.
+- **Batch ETL** owns Raw → Silver → Gold transformation.
+- **Kafka Streaming** owns event ingestion, Redis deduplication, and validated staging output.
+- **Cloud Data Platform** owns cloud storage, Athena SQL, Redshift processing, analytics views, and warehouse metadata.
+- **Airflow Orchestration** owns execution order, dependency coordination, downstream validation, and orchestration reporting.
+- **API Serving** exposes trusted Batch and Streaming analytics to downstream applications.
 
 ---
 
-## 📊 Project Metrics
+## 📊 Validated Results
 
-| Metric                             |    Result |
-| ---------------------------------- | --------: |
-| Batch Gold marts published         |         5 |
-| Redshift Batch landing tables      |         5 |
-| Redshift Batch landing rows        |     2,944 |
-| Redshift Batch analytics views     |         5 |
-| Redshift Streaming landing tables  |         1 |
-| Streaming events loaded            |   100,000 |
-| Distinct streaming event IDs       |   100,000 |
-| Duplicate event IDs                |         0 |
-| Missing event IDs                  |         0 |
-| Redshift Streaming analytics views |         4 |
-| Total Redshift analytics views     |         9 |
-| Streaming fiscal-year rows         |        20 |
-| Automated tests                    | 34 passed |
-| Ruff lint                          |    Passed |
-| GitHub Actions CI                  |    Passed |
-| Runtime metadata validation        |      PASS |
+| Metric | Result |
+| --- | ---: |
+| Batch Gold marts published | 5 |
+| Redshift Batch landing tables | 5 |
+| Redshift Batch landing rows | 2,944 |
+| Redshift Batch analytics views | 5 |
+| Redshift Streaming landing tables | 1 |
+| Streaming events loaded | 100,000 |
+| Distinct streaming event IDs | 100,000 |
+| Duplicate event IDs | 0 |
+| Missing event IDs | 0 |
+| Redshift Streaming analytics views | 4 |
+| Total Redshift analytics views | 9 |
+| Streaming fiscal-year rows | 20 |
+| Latest metadata runtime | 16.06 seconds |
+| Automated tests | 34 passed |
+| Ruff linting | PASS |
+| Runtime metadata validation | PASS |
+| GitHub Actions CI | PASS |
 
-The metrics are generated from real S3, Athena, Redshift, local test, and CI execution evidence.
+These metrics are supported by S3, Athena, Redshift, runtime metadata, local validation, and CI evidence included in this repository.
 
 ---
 
 ## 🔄 Cloud Data Flow
 
 ```text
-Batch ETL outputs
-→ Amazon S3 Batch zones
-├──→ Athena Batch external tables
-└──→ Redshift Batch landing tables
+Batch ETL Gold outputs
+→ Amazon S3
+├──→ Amazon Athena external tables
+└──→ Amazon Redshift Batch landing tables
      → Batch analytics views
+     → Batch validation
 
-Streaming staging events
-→ Curated Streaming CSV
-→ Amazon S3 Streaming zones
-├──→ Athena Streaming table
-└──→ Redshift Streaming landing table
+Kafka Streaming staging JSONL
+→ Cloud JSONL-to-CSV conversion
+→ Amazon S3 Streaming curated data
+├──→ Amazon Athena Streaming table
+└──→ Amazon Redshift Streaming landing table
      → Streaming analytics views
+     → Event-ID and aggregate validation
 
-Redshift validation queries
+Redshift validation results
 → Runtime metadata generator
 → redshift_execution_summary.json
-
 ```
 
-Airflow can invoke the Cloud Data Platform scripts and validate the resulting metadata, but the implementation remains inside this repository.
+In the integrated platform, Airflow invokes the bounded Cloud steps and coordinates their execution with the upstream pipelines.
 
 ---
 
 ## 🪣 Amazon S3 Data Lake
 
-Amazon S3 provides durable storage for trusted Batch and Streaming outputs.
+Amazon S3 provides durable cloud storage for trusted Batch and Streaming outputs.
 
-### Batch Zones
+### Batch Storage
 
 ```text
 data-platform/vendor-payments/
@@ -151,11 +154,11 @@ data-platform/vendor-payments/
 └── reports/
 ```
 
-The five analytics-ready Gold marts are stored in separate S3 prefixes.
+The five analytics-ready Gold marts are published into separate S3 prefixes.
 
 ![S3 Full Gold Marts](assets/redshift/01_s3_full_gold_marts.png)
 
-### Streaming Zones
+### Streaming Storage
 
 ```text
 data-platform/vendor-payments/streaming/
@@ -169,19 +172,17 @@ data-platform/vendor-payments/streaming/
 └── reports/
 ```
 
-The curated Streaming CSV contains the validated event dataset used by Athena and Redshift.
-
-![S3 Streaming Curated CSV](assets/redshift/06_s3_streaming_curated_csv.png)
+The Cloud conversion script transforms validated JSONL staging events into a flattened curated CSV that can be queried by Athena and loaded into Redshift.
 
 Generated data files remain outside Git and are published directly to Amazon S3.
 
 ---
 
-## 🔎 Amazon Athena and AWS Glue Data Catalog
+## 🔎 Amazon Athena
 
-Amazon Athena provides a serverless SQL query layer over the S3 data lake.
+Amazon Athena provides serverless SQL access directly over the S3 data lake.
 
-The SQL definitions are stored under:
+SQL definitions are stored under:
 
 ```text
 sql/athena/
@@ -189,31 +190,40 @@ sql/athena/
 
 The repository includes SQL for:
 
-* Creating the analytics database
-* Creating Batch Gold external tables
-* Creating the Streaming external table
-* Querying fiscal-year spending
-* Querying top suppliers
-* Querying pending payments by department
-* Querying Streaming events and aggregations
+- Creating the analytics database
+- Creating Batch Gold external tables
+- Creating the Streaming external table
+- Querying spending by fiscal year
+- Querying top suppliers
+- Querying pending payments by department
+- Querying and validating Streaming events
 
-Athena enables direct analysis of trusted S3 outputs without requiring data movement into a dedicated warehouse.
+### Batch Query Evidence
 
-AWS Glue Data Catalog stores the external table metadata used by Athena.
+Athena queries the Batch Gold data directly from S3 and returns fiscal-year analytics without loading the data into Redshift first.
+
+![Athena Batch Query](assets/redshift/02_athena_batch_query.png)
+
+### Streaming Validation Evidence
+
+Athena validates both total Streaming events and distinct event IDs:
 
 ```text
-Amazon S3 objects
-→ AWS Glue table metadata
-→ Amazon Athena SQL queries
+total_streaming_events = 100000
+unique_event_ids       = 100000
 ```
+
+![Athena Streaming Validation](assets/redshift/03_athena_streaming_validation.png)
+
+Athena provides an independent serverless query path over the same curated S3 datasets used by the warehouse layer.
 
 ---
 
 ## 🏢 Amazon Redshift Serverless
 
-Amazon Redshift Serverless provides the warehouse serving layer.
+Amazon Redshift Serverless provides the warehouse analytics layer.
 
-The warehouse is separated into two schemas:
+The warehouse separates stored datasets from analytics logic through two schemas:
 
 ```text
 landing
@@ -222,7 +232,7 @@ analytics
 
 ### Landing Schema
 
-The `landing` schema stores validated Batch and Streaming datasets loaded from Amazon S3.
+The `landing` schema stores trusted Batch and Streaming datasets copied from S3.
 
 ```text
 landing.fund_category_summary
@@ -235,15 +245,15 @@ landing.vendor_payments_streaming_events
 
 ### Analytics Schema
 
-The `analytics` schema exposes warehouse-ready views for downstream analysis.
+The `analytics` schema exposes reusable views for downstream analysis.
 
 ```text
-Batch analytics views = 5
+Batch analytics views     = 5
 Streaming analytics views = 4
-Total analytics views = 9
+Total analytics views     = 9
 ```
 
-The SQL implementation is stored under:
+Redshift SQL is stored under:
 
 ```text
 sql/redshift/
@@ -253,102 +263,76 @@ sql/redshift/
 
 ## 📦 Batch Warehouse Layer
 
-The Batch warehouse flow loads five Gold marts from Amazon S3 into Redshift landing tables.
+The Batch warehouse flow loads five Gold marts from S3 into Redshift.
 
 ```text
 S3 Gold marts
 → Redshift COPY
-→ landing schema
+→ landing tables
 → analytics views
-→ business analytics
+→ validation
 ```
 
-### Batch Landing Tables
+### Batch Landing Validation
 
-The five landing tables were created successfully.
+Validated row counts:
 
-![Redshift Batch Landing Tables](assets/redshift/02_redshift_batch_landing_tables_created.png)
+| Landing Table | Rows |
+| --- | ---: |
+| `fund_category_summary` | 1,061 |
+| `pending_by_department` | 642 |
+| `spending_by_department` | 1,121 |
+| `spending_by_fiscal_year` | 20 |
+| `spending_by_supplier_top_n` | 100 |
+| **Total** | **2,944** |
 
-### Batch Landing Row Counts
+![Redshift Batch Landing Validation](assets/redshift/04_redshift_batch_landing.png)
 
-Validated Batch landing rows:
+### Batch Analytics
 
-| Table                        |      Rows |
-| ---------------------------- | --------: |
-| `fund_category_summary`      |     1,061 |
-| `pending_by_department`      |       642 |
-| `spending_by_department`     |     1,121 |
-| `spending_by_fiscal_year`    |        20 |
-| `spending_by_supplier_top_n` |       100 |
-| **Total**                    | **2,944** |
+The Batch analytics layer provides fiscal-year, department, supplier, fund-category, and pending-payment analysis.
 
-![Redshift Batch Landing Row Counts](assets/redshift/03_redshift_batch_landing_row_counts.png)
+The fiscal-year view also calculates previous-year values and year-over-year changes directly in the warehouse.
 
-### Batch Analytics Views
-
-Five Batch analytics views provide fiscal-year, department, supplier, fund-category, and pending-payment analysis.
-
-![Redshift Batch Analytics Views](assets/redshift/04_redshift_batch_analytics_views.png)
-
-### Year-over-Year Analytics
-
-The fiscal-year analytics view calculates previous-year values and year-over-year changes directly in the warehouse.
-
-![Redshift Year-over-Year Analytics](assets/redshift/05_redshift_year_over_year_analytics.png)
+![Redshift Batch Analytics](assets/redshift/05_redshift_batch_analytics.png)
 
 ---
 
 ## 🌊 Streaming Warehouse Layer
 
-The Streaming warehouse flow loads the curated event dataset from Amazon S3 into Redshift.
+The Streaming warehouse flow loads the curated event dataset from S3 into Redshift.
 
 ```text
-Validated Streaming events
+Validated JSONL staging events
 → Curated CSV
 → Amazon S3
 → Redshift landing table
 → Streaming analytics views
+→ Validation
 ```
 
-### Streaming Landing Validation
-
-The landing table contains:
+Validated warehouse metrics:
 
 ```text
-total_rows          = 100000
-rows_with_event_id  = 100000
-distinct_event_ids  = 100000
-duplicate_event_ids = 0
-missing_event_ids   = 0
+total_rows             = 100000
+distinct_event_ids     = 100000
+duplicate_event_ids    = 0
+missing_event_ids      = 0
+analytics_view_count   = 4
+fiscal_year_rows       = 20
+total_events           = 100000
+total_distinct_events  = 100000
 ```
 
-![Redshift Streaming Landing Validation](assets/redshift/07_redshift_streaming_landing_validation.png)
+![Redshift Streaming Validation](assets/redshift/06_redshift_streaming_validation.png)
 
-This validates that all accepted Streaming records retain a valid and unique `event_id` after cloud publishing and warehouse loading.
-
-### Batch and Streaming Analytics Views
-
-The `analytics` schema contains both Batch and Streaming views.
-
-![Redshift Batch and Streaming Analytics Views](assets/redshift/08_redshift_batch_streaming_analytics_views.png)
-
-### Streaming Analytics Validation
-
-The fiscal-year Streaming view validates that warehouse analytics totals match the landing dataset.
-
-```text
-fiscal_year_rows      = 20
-total_events          = 100000
-total_distinct_events = 100000
-```
-
-![Redshift Streaming Analytics Validation](assets/redshift/09_redshift_streaming_analytics_validation.png)
+These checks verify that the warehouse retains all accepted Streaming events, preserves unique event IDs, and produces analytics totals consistent with the landing dataset.
 
 ---
 
 ## 🧾 Runtime Metadata
 
-The Redshift metadata generator queries the existing warehouse through the Redshift Data API.
+The Redshift metadata generator queries the warehouse through the Redshift Data API.
 
 Generator:
 
@@ -362,7 +346,7 @@ Generated artifact:
 output/reports/redshift_execution_summary.json
 ```
 
-The execution summary records:
+The execution artifact records:
 
 ```text
 Project identity
@@ -373,103 +357,90 @@ Execution start and completion timestamps
 Runtime
 Execution status
 AWS region
-Redshift workgroup
-Database
+Redshift workgroup and database
 Landing and analytics schemas
-Batch landing and analytics metrics
-Streaming landing and analytics metrics
+Batch warehouse metrics
+Streaming warehouse metrics
 Event-ID validation metrics
 Overall validation status
-Generated artifact path
+Artifact path and format
 ```
 
-Example top-level structure:
+Latest validated metadata includes:
 
-```json
-{
-  "project": "Vendor Payments Cloud Data Platform",
-  "component": "Amazon Redshift Serverless",
-  "pipeline_version": "1.0.0",
-  "generated_at": "2026-06-22T17:11:10.872788+00:00",
-  "execution": {
-    "started_at": "2026-06-22T17:07:45.925482+00:00",
-    "completed_at": "2026-06-22T17:11:10.872788+00:00",
-    "runtime_seconds": 188.58,
-    "status": "PASS"
-  },
-  "redshift": {},
-  "batch": {},
-  "streaming": {},
-  "validation": {
-    "status": "PASS"
-  },
-  "artifact": {
-    "path": "output/reports/redshift_execution_summary.json",
-    "format": "json"
-  }
-}
+```text
+runtime_seconds                 = 16.06
+execution.status                = PASS
+
+batch.landing_table_count       = 5
+batch.landing_total_rows        = 2944
+batch.analytics_view_count      = 5
+
+streaming.landing_table_count   = 1
+streaming.total_rows            = 100000
+streaming.distinct_event_ids    = 100000
+streaming.duplicate_event_ids   = 0
+streaming.missing_event_ids     = 0
+streaming.analytics_view_count  = 4
+
+validation.status               = PASS
 ```
 
 The generator validates the required metadata contract before writing the JSON artifact.
 
-![Redshift Runtime Metadata](assets/redshift/10_redshift_runtime_metadata_generated.png)
+![Redshift Runtime Metadata](assets/redshift/07_redshift_runtime_metadata.png)
 
 ---
 
-## ✅ Validation
+## ✅ Automated Validation
 
-Run the complete test suite:
-
-```powershell
-pytest
-```
-
-Run Ruff:
+Run the full local validation:
 
 ```powershell
-ruff check .
+python -m pytest -q
+python -m ruff check .
 ```
 
-Current local result:
+Current result:
 
 ```text
-34 passed
+34 passed in 0.20s
 All checks passed!
 ```
 
-![Project 5 Automated Tests Passed](assets/redshift/11_project5_automated_tests_passed.png)
+![Cloud Tests and Ruff Passed](assets/redshift/08_cloud_tests_and_lint.png)
 
 ### Test Coverage
 
 The automated tests validate:
 
-* Required project directories and files
-* Final architecture and execution-evidence assets
-* Batch S3 upload plans
-* Streaming S3 upload plans
-* Local input validation before upload
-* S3 key and zone structure
-* Streaming JSONL parsing
-* Nested event-record flattening
-* JSONL-to-CSV conversion
-* Athena SQL file availability
-* Batch Athena definitions
-* Streaming Athena definitions
-* Batch warehouse metric validation
-* Streaming event-ID validation
-* Required metadata sections
-* Missing metadata handling
-* Invalid execution status handling
-* Invalid validation status handling
-* JSON-compatible value normalization
+- Required project directories and files
+- Final architecture and execution-evidence assets
+- Batch S3 upload plans
+- Streaming S3 upload plans
+- Local input validation before upload
+- S3 key and zone structure
+- Streaming JSONL parsing
+- Nested event-record flattening
+- JSONL-to-CSV conversion
+- Athena SQL file availability
+- Batch Athena definitions
+- Streaming Athena definitions
+- Batch warehouse metric validation
+- Streaming event-ID validation
+- Required runtime metadata sections
+- Missing metadata handling
+- Invalid execution status handling
+- Invalid validation status handling
+- JSON-compatible value normalization
 
-The unit tests do not require active AWS credentials or a live Redshift connection.
+Unit tests do not require active AWS credentials or a live Redshift connection.
 
 ---
 
 ## ⚙️ Continuous Integration
 
-GitHub Actions runs automatically on pushes and pull requests to `main`.
+GitHub Actions runs validation on pushes and pull requests to `main`.
 
 ```text
 Ruff
@@ -482,34 +453,30 @@ Workflow:
 .github/workflows/ci.yml
 ```
 
-The CI workflow validates Python code, SQL assets, metadata contracts, project structure, and automated tests.
+The CI workflow validates Python code, SQL assets, metadata contracts, project structure, and automated tests without performing Cloud write operations.
 
-![GitHub Actions CI Passed](assets/redshift/12_project5_github_actions_ci_passed.png)
-
-Current CI result:
-
-```text
-validate-cloud-platform: Success
-Job duration: 23 seconds
-Workflow total duration: 27 seconds
-```
-
-AWS credentials are not required because CI validates code and contracts without executing cloud write operations.
+![Cloud CI Success](assets/redshift/09_cloud_ci_success.png)
 
 ---
 
-## 📸 Execution Evidence
+## 📸 Final Execution Evidence
 
-The repository includes verified execution evidence for:
+The final evidence set is intentionally compact and covers each major responsibility:
 
-- Amazon S3 Batch and Streaming objects
-- Redshift Batch landing tables and analytics views
-- Streaming event-ID validation
-- Runtime metadata generation
-- Local Pytest and Ruff validation
-- GitHub Actions CI
+```text
+00_cloud_data_platform_architecture.png
+01_s3_full_gold_marts.png
+02_athena_batch_query.png
+03_athena_streaming_validation.png
+04_redshift_batch_landing.png
+05_redshift_batch_analytics.png
+06_redshift_streaming_validation.png
+07_redshift_runtime_metadata.png
+08_cloud_tests_and_lint.png
+09_cloud_ci_success.png
+```
 
-Evidence is presented in the relevant sections above to avoid duplicating screenshots.
+Together, these screenshots demonstrate architecture, cloud storage, serverless querying, warehouse loading and analytics, data-quality validation, runtime metadata, automated testing, linting, and CI.
 
 ---
 
@@ -523,25 +490,17 @@ vendor-payments-cloud-data-platform/
 │       └── ci.yml
 │
 ├── assets/
-│   ├── legacy/
-│   │   └── vendor-payments-cloud/
-│   │       ├── batch/
-│   │       └── streaming/
-│   │
 │   └── redshift/
 │       ├── 00_cloud_data_platform_architecture.png
 │       ├── 01_s3_full_gold_marts.png
-│       ├── 02_redshift_batch_landing_tables_created.png
-│       ├── 03_redshift_batch_landing_row_counts.png
-│       ├── 04_redshift_batch_analytics_views.png
-│       ├── 05_redshift_year_over_year_analytics.png
-│       ├── 06_s3_streaming_curated_csv.png
-│       ├── 07_redshift_streaming_landing_validation.png
-│       ├── 08_redshift_batch_streaming_analytics_views.png
-│       ├── 09_redshift_streaming_analytics_validation.png
-│       ├── 10_redshift_runtime_metadata_generated.png
-│       ├── 11_project5_automated_tests_passed.png
-│       └── 12_project5_github_actions_ci_passed.png
+│       ├── 02_athena_batch_query.png
+│       ├── 03_athena_streaming_validation.png
+│       ├── 04_redshift_batch_landing.png
+│       ├── 05_redshift_batch_analytics.png
+│       ├── 06_redshift_streaming_validation.png
+│       ├── 07_redshift_runtime_metadata.png
+│       ├── 08_cloud_tests_and_lint.png
+│       └── 09_cloud_ci_success.png
 │
 ├── scripts/
 │   ├── batch/
@@ -617,8 +576,8 @@ pip install -r requirements.txt
 Run tests and Ruff:
 
 ```powershell
-pytest
-ruff check .
+python -m pytest -q
+python -m ruff check .
 ```
 
 ### Upload Batch Outputs
@@ -645,7 +604,9 @@ python -m scripts.streaming.upload_streaming_to_s3
 python scripts\warehouse\generate_redshift_summary.py
 ```
 
-The Redshift metadata generator requires access to the configured AWS account and Redshift Serverless workgroup.
+Cloud write operations and Redshift metadata generation require access to the configured AWS account.
+
+In the integrated Vendor Payments platform, these Cloud capabilities are normally invoked by Airflow rather than run manually one by one.
 
 ---
 
@@ -653,50 +614,77 @@ The Redshift metadata generator requires access to the configured AWS account an
 
 AWS credentials are resolved through the standard AWS credential chain.
 
-Example:
+Example `.env.example` configuration:
 
 ```env
 AWS_PROFILE=default
 AWS_REGION=ap-southeast-1
 
-S3_BUCKET=your-s3-bucket-name
+S3_BUCKET=vendor-payments-data-platform-thana
 S3_PREFIX=data-platform/vendor-payments
+
+VENDOR_PAYMENTS_ETL_ROOT=E:\dev\vendor-payments-etl-analytics
+VENDOR_PAYMENTS_STREAMING_ROOT=E:\dev\vendor-payments-streaming-pipeline
+AIRFLOW_OUTPUT_ROOT=E:\dev\vendor-payments-airflow-orchestration\output
 
 REDSHIFT_WORKGROUP=default-workgroup
 REDSHIFT_DATABASE=dev
-
-PROJECT1_ROOT=E:\dev\vendor-payments-etl-analytics
-PROJECT3_ROOT=E:\dev\vendor-payments-streaming-pipeline
-PROJECT4_OUTPUT_ROOT=E:\dev\vendor-payments-airflow-orchestration\output
 ```
 
-Do not commit real credentials, access keys, secrets, or account-specific configuration.
+A local `.env` file is not required by the current repository workflow. Environment values can be supplied by the execution environment, and the scripts also provide local development defaults where applicable.
+
+Do not commit real credentials, access keys, secrets, or sensitive account configuration.
+
+---
+
+## ☁️ Airflow Integration
+
+The Cloud repository remains independently testable, but the integrated platform uses Apache Airflow to coordinate Cloud execution.
+
+The main orchestration flow invokes Cloud-owned scripts and SQL in bounded tasks:
+
+```text
+Batch Gold validation
+→ Upload Batch Gold to S3
+
+Streaming staging validation
+→ Downstream deduplication check
+→ Convert Streaming JSONL to CSV
+→ Upload Streaming curated output to S3
+
+Cloud readiness
+→ Create Redshift schemas
+→ Batch Redshift processing
+→ Streaming Redshift processing
+→ Generate Redshift execution metadata
+→ Validate Redshift execution metadata
+```
+
+This separation keeps implementation ownership clear:
+
+```text
+Cloud repository = implementation
+Airflow repository = orchestration
+```
 
 ---
 
 ## 💰 AWS Cost and Resource Management
 
-The project uses serverless and object-storage services, but active resources may still create AWS charges.
+The project uses serverless and object-storage services, but active AWS resources may still create charges.
 
 Cost-sensitive resources include:
 
-* Amazon S3 object storage
-* Athena query data scanned
-* Redshift Serverless compute usage
-* Redshift managed storage
-* AWS Glue Data Catalog usage beyond applicable free quotas
-* Data transfer where applicable
+- Amazon S3 storage
+- Athena data scanned
+- Redshift Serverless compute
+- Redshift managed storage
+- AWS Glue Data Catalog usage beyond applicable quotas
+- Data transfer where applicable
 
-Recommended controls:
+Recommended controls include reviewing Redshift Serverless usage, limiting unnecessary Athena scans, keeping only required S3 datasets, configuring AWS billing alerts, and removing unused validation resources.
 
-* Stop or remove resources that are no longer required
-* Keep only necessary S3 evidence and curated datasets
-* Limit Athena scans through partitioning and targeted queries
-* Review Redshift Serverless usage and capacity settings
-* Configure AWS Budgets and billing alerts
-* Remove test resources after validation
-
-The repository does not provision infrastructure automatically. Cloud resources are created and managed separately.
+The repository does not provision AWS infrastructure automatically.
 
 ---
 
@@ -704,60 +692,66 @@ The repository does not provision infrastructure automatically. Cloud resources 
 
 ```text
 Batch ETL Pipeline
-→ produces validated Silver and Gold analytics outputs
+→ validated Silver and Gold analytics outputs
 
 Kafka Streaming Pipeline
-→ produces validated and deduplicated event data
+→ validated and deduplicated staging events
 
 Airflow Orchestration
-→ invokes processing scripts, coordinates execution,
-  and validates runtime metadata
+→ execution order, dependency coordination,
+  Cloud invocation, and cross-platform validation
 
 Cloud Data Platform
-→ owns S3, Athena, Glue Catalog, Redshift,
-  analytics views, and warehouse runtime metadata
+→ Amazon S3
+→ Amazon Athena
+→ Amazon Redshift Serverless
+→ analytics views
+→ warehouse validation
+→ runtime metadata
 
-API Serving Layer
-→ exposes trusted Batch and Streaming analytics
+FastAPI Serving
+→ trusted Batch and Streaming API endpoints
 
-Power BI and Web Analytics
-→ consume business and event insights
+Power BI + React Analytics
+→ business and event analytics consumption
 ```
 
-This repository is the Cloud and Warehouse processing layer.
+This repository is the Cloud storage, serverless query, and warehouse-processing layer of the wider Vendor Payments platform.
 
-It does not own Batch transformation, Kafka ingestion, Airflow DAG implementation, API serving, or dashboard presentation logic.
+It does not own Batch transformation logic, Kafka ingestion logic, Airflow DAG implementation, API routing, or dashboard presentation.
 
 ---
 
 ## 🧠 Key Engineering Decisions
 
-* Keep Cloud and Warehouse processing separate from orchestration logic
-* Use S3 as durable storage for Batch and Streaming outputs
-* Separate Batch and Streaming S3 zones
-* Use Athena for serverless SQL access over S3
-* Use Redshift Serverless for warehouse-optimized analytics
-* Separate landing tables from analytics views
-* Load trusted datasets from S3 instead of embedding source data in the repository
-* Validate event-ID uniqueness at the warehouse layer
-* Validate relationships between landing and analytics totals
-* Generate durable runtime metadata as JSON
-* Enforce a required metadata contract before writing the artifact
-* Use IAM and the Redshift Data API instead of stored database credentials
-* Keep generated datasets and local runtime files out of Git
-* Validate code, SQL assets, project structure, and metadata logic in CI
+- Keep Cloud implementation separate from orchestration.
+- Use Amazon S3 as durable storage for trusted Batch and Streaming outputs.
+- Separate Batch and Streaming storage zones.
+- Use Athena for direct serverless SQL analysis over S3.
+- Use Redshift Serverless for warehouse-oriented analytics.
+- Separate landing tables from analytics views.
+- Load trusted datasets from S3 instead of committing generated data to Git.
+- Validate Streaming event-ID completeness and uniqueness at the warehouse layer.
+- Validate relationships between landing data and analytics aggregates.
+- Generate machine-readable runtime metadata rather than relying only on terminal logs.
+- Enforce a metadata contract before writing the execution artifact.
+- Use IAM and the Redshift Data API instead of storing database passwords.
+- Validate code, SQL assets, project structure, and metadata logic through automated tests and CI.
 
 ---
 
 ## 🛣️ Planned Development
 
-* Add infrastructure-as-code for repeatable AWS deployment
-* Add partition-aware Athena optimization
-* Add automated Redshift loading orchestration
-* Add centralized observability and cloud cost reporting
-* Add Power BI semantic models and dashboards
-* Add Web Analytics Application integration
-* Add alerting for failed Cloud and Warehouse executions
+The current portfolio version is intentionally bounded and reproducible. Possible production-oriented extensions include:
+
+- Infrastructure as Code for repeatable AWS deployment
+- Partition-aware S3 and Athena optimization
+- Incremental and window-based Streaming cloud publishing
+- Historical warehouse execution metadata storage
+- Centralized Cloud observability and cost reporting
+- Automated failure alerting
+- Stronger environment and secret management
+- Additional warehouse performance and cost tuning
 
 ---
 
@@ -765,16 +759,17 @@ It does not own Batch transformation, Kafka ingestion, Airflow DAG implementatio
 
 This project demonstrates more than uploading files to Amazon S3.
 
-It shows how to extend trusted Batch and Streaming outputs into a cloud analytics platform with:
+It extends independently validated Batch and Streaming pipelines into a modular AWS analytics platform:
 
 ```text
-Layered S3 storage
-→ Serverless Athena queries
-→ Redshift landing tables
+Trusted upstream outputs
+→ Amazon S3 data lake
+→ Amazon Athena serverless queries
+→ Amazon Redshift landing tables
 → Analytics views
+→ Warehouse validation
 → Runtime metadata
-→ Automated validation
-→ Portfolio-ready execution evidence
+→ Automated tests and CI
 ```
 
-The result is a modular Cloud and Warehouse layer with clear responsibility boundaries, measurable validation, and reusable analytics outputs for APIs, dashboards, and web applications.
+The result is a cloud and warehouse layer with clear responsibility boundaries, reproducible processing logic, measurable data-quality checks, and trusted analytics outputs for downstream APIs and dashboards.

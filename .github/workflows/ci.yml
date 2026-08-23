@@ -1,4 +1,4 @@
-name: CI - Project 5 Cloud Warehouse Platform
+name: CI - Vendor Payments Cloud Data Platform
 
 on:
   push:
