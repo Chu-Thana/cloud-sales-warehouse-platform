@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+import re
 import time
 from pathlib import Path
 from typing import Any
@@ -66,6 +67,31 @@ def wait_for_statement(
 
         time.sleep(POLL_INTERVAL_SECONDS)
 
+
+def render_sql_environment_variables(
+    sql: str,
+) -> str:
+    """Replace ${ENV_VAR} placeholders with environment values."""
+    pattern = re.compile(r"\$\{([A-Z0-9_]+)\}")
+
+    def replace(match: re.Match[str]) -> str:
+        variable_name = match.group(1)
+        value = os.getenv(variable_name)
+
+        if value is None:
+            raise ValueError(
+                "Required SQL environment variable is not set: "
+                f"{variable_name}"
+            )
+
+        return value
+
+    return pattern.sub(
+        replace,
+        sql,
+    )
+
+
 def execute_sql_file(
     client: Any,
     sql_file: Path,
@@ -77,6 +103,10 @@ def execute_sql_file(
 
     sql = sql_file.read_text(
         encoding="utf-8",
+    )
+
+    sql = render_sql_environment_variables(
+        sql
     )
 
     if not sql.strip():

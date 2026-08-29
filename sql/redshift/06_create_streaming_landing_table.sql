@@ -61,11 +61,13 @@ CREATE TABLE IF NOT EXISTS landing.vendor_payments_streaming_events (
     payload_vouchers_paid                     VARCHAR(128),
     payload_vouchers_pending                  VARCHAR(128),
     payload_vouchers_pending_retainage        VARCHAR(128),
+    payload_window_id                         VARCHAR(128),
     payment_amount                            VARCHAR(128),
     payment_status                            VARCHAR(128),
     source_row_hash                           VARCHAR(128),
     source_system                             VARCHAR(128),
     supplier_name                             VARCHAR(1024),
     vendor_name                               VARCHAR(1024),
-    vouchers_paid                             VARCHAR(128)
+    vouchers_paid                             VARCHAR(128),
+    window_id                                 VARCHAR(128)
 );

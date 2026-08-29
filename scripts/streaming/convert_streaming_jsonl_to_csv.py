@@ -1,6 +1,7 @@
 import csv
 import json
 import os
+import argparse
 from pathlib import Path
 from typing import Any
 
@@ -11,16 +12,6 @@ STREAMING_PIPELINE_ROOT = Path(
         r"E:\dev\vendor-payments-streaming-pipeline",
     )
 )
-
-INPUT_JSONL_FILE = (
-    STREAMING_PIPELINE_ROOT
-    / "output"
-    / "staging"
-    / "vendor_payments_streaming_staging.jsonl"
-)
-
-OUTPUT_DIR = Path("data") / "streaming" / "curated"
-OUTPUT_CSV_FILE = OUTPUT_DIR / "vendor_payments_streaming_events.csv"
 
 
 def flatten_record(
@@ -98,22 +89,48 @@ def write_csv(records: list[dict[str, Any]], output_path: Path) -> None:
 
 
 def convert_jsonl_to_csv(
-    input_path: Path = INPUT_JSONL_FILE,
-    output_path: Path = OUTPUT_CSV_FILE,
+    input_path: Path,
+    output_path: Path,
 ) -> Path:
-    """Convert streaming JSONL staging output to a curated CSV file."""
+    """Convert one streaming window JSONL file to curated CSV."""
     records = read_jsonl_records(input_path)
 
     if not records:
-        raise ValueError(f"No records found in input JSONL file: {input_path}")
+        raise ValueError(
+            f"No records found in input JSONL file: {input_path}"
+        )
 
-    write_csv(records, output_path)
+    write_csv(
+        records,
+        output_path,
+    )
+
     return output_path
 
 
 def main() -> None:
-    output_path = convert_jsonl_to_csv()
-    print(f"Streaming curated CSV created: {output_path}")
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--input-file",
+        required=True,
+    )
+
+    parser.add_argument(
+        "--output-file",
+        required=True,
+    )
+
+    args = parser.parse_args()
+
+    output_path = convert_jsonl_to_csv(
+        input_path=Path(args.input_file),
+        output_path=Path(args.output_file),
+    )
+
+    print(
+        f"Streaming curated CSV created: {output_path}"
+    )
 
 
 if __name__ == "__main__":
