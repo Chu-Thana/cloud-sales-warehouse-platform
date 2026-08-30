@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS vendor_payments_analytics.vendor_payments_streaming_events;

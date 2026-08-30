@@ -92,10 +92,68 @@ def render_sql_environment_variables(
     )
 
 
+def get_statement_results(
+    client: Any,
+    statement_id: str,
+) -> list[dict[str, str | None]]:
+    response = client.get_statement_result(
+        Id=statement_id,
+    )
+
+    columns = response.get(
+        "ColumnMetadata",
+        [],
+    )
+
+    records = response.get(
+        "Records",
+        [],
+    )
+
+    column_names = [
+        column["name"]
+        for column in columns
+    ]
+
+    results: list[dict[str, str | None]] = []
+
+    for record in records:
+        row: dict[str, str | None] = {}
+
+        for index, column_name in enumerate(
+            column_names
+        ):
+            value = None
+
+            if index < len(record):
+                field = record[index]
+
+                if "stringValue" in field:
+                    value = field["stringValue"]
+                elif "longValue" in field:
+                    value = str(
+                        field["longValue"]
+                    )
+                elif "doubleValue" in field:
+                    value = str(
+                        field["doubleValue"]
+                    )
+                elif "booleanValue" in field:
+                    value = str(
+                        field["booleanValue"]
+                    )
+
+            row[column_name] = value
+
+        results.append(row)
+
+    return results
+
+
 def execute_sql_file(
     client: Any,
     sql_file: Path,
-) -> None:
+) -> str:
     if not sql_file.exists():
         raise FileNotFoundError(
             f"SQL file not found: {sql_file}"
@@ -127,6 +185,8 @@ def execute_sql_file(
         statement_id=statement_id,
     )
 
+    return statement_id
+
 def main() -> None:
     if len(sys.argv) != 2:
         raise ValueError(
@@ -146,10 +206,26 @@ def main() -> None:
 
     print(f"Running Redshift SQL: {sql_file}")
 
-    execute_sql_file(
+    statement_id = execute_sql_file(
         client=client,
         sql_file=sql_file,
     )
+
+    statement = client.describe_statement(
+        Id=statement_id,
+    )
+
+    if statement.get("HasResultSet", False):
+        results = get_statement_results(
+            client=client,
+            statement_id=statement_id,
+        )
+
+        if results:
+            print("Redshift query results:")
+
+            for row in results:
+                print(row)
 
     print(
         "Redshift SQL execution completed successfully."

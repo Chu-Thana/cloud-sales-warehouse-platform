@@ -17,7 +17,7 @@ WITH SERDEPROPERTIES (
     'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://vendor-payments-data-platform-thana/data-platform/vendor-payments/gold/sample/mart_spending_by_fiscal_year/'
+LOCATION 's3://vendor-payments-data-platform-thana/data-platform/vendor-payments/gold/full/mart_spending_by_fiscal_year/'
 TBLPROPERTIES ('skip.header.line.count'='1');
 
 
@@ -40,7 +40,7 @@ WITH SERDEPROPERTIES (
     'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://vendor-payments-data-platform-thana/data-platform/vendor-payments/gold/sample/mart_spending_by_supplier_top_n/'
+LOCATION 's3://vendor-payments-data-platform-thana/data-platform/vendor-payments/gold/full/mart_spending_by_supplier_top_n/'
 TBLPROPERTIES ('skip.header.line.count'='1');
 
 
@@ -64,5 +64,5 @@ WITH SERDEPROPERTIES (
     'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://vendor-payments-data-platform-thana/data-platform/vendor-payments/gold/sample/mart_pending_by_department/'
+LOCATION 's3://vendor-payments-data-platform-thana/data-platform/vendor-payments/gold/full/mart_pending_by_department/'
 TBLPROPERTIES ('skip.header.line.count'='1');

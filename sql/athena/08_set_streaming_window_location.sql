@@ -1,0 +1,2 @@
+ALTER TABLE vendor_payments_analytics.vendor_payments_streaming_events
+SET LOCATION '${STREAMING_CURATED_S3_LOCATION}';

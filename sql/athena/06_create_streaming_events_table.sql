@@ -61,13 +61,15 @@ CREATE EXTERNAL TABLE IF NOT EXISTS vendor_payments_analytics.vendor_payments_st
   payload_vouchers_paid string,
   payload_vouchers_pending string,
   payload_vouchers_pending_retainage string,
+  payload_window_id string,
   payment_amount string,
   payment_status string,
   source_row_hash string,
   source_system string,
   supplier_name string,
   vendor_name string,
-  vouchers_paid string
+  vouchers_paid string,
+  window_id string
 )
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
 WITH SERDEPROPERTIES (
@@ -76,7 +78,7 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://vendor-payments-data-platform-thana/data-platform/vendor-payments/streaming/curated/'
+LOCATION '${STREAMING_CURATED_S3_LOCATION}'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );

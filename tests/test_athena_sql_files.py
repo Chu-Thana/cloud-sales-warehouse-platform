@@ -44,7 +44,7 @@ def test_create_gold_tables_contains_expected_tables():
     assert "mart_spending_by_fiscal_year" in content
     assert "mart_spending_by_supplier_top_n" in content
     assert "mart_pending_by_department" in content
-    assert "data-platform/vendor-payments/gold/sample" in content
+    assert "data-platform/vendor-payments/gold/full" in content
 
 
 def test_query_files_reference_vendor_payments_database():
@@ -66,10 +66,12 @@ def test_streaming_table_sql_contains_expected_location_and_columns():
 
     assert "CREATE EXTERNAL TABLE" in content
     assert "vendor_payments_streaming_events" in content
-    assert "data-platform/vendor-payments/streaming/curated" in content
+    assert "${STREAMING_CURATED_S3_LOCATION}" in content
     assert "event_id" in content
     assert "event_timestamp" in content
     assert "payment_amount" in content
+    assert "payload_window_id" in content
+    assert "window_id" in content
 
 
 def test_streaming_query_file_references_streaming_table():
