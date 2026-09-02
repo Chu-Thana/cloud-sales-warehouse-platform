@@ -2,11 +2,11 @@
   "project": "Vendor Payments Cloud Data Platform",
   "component": "Amazon Redshift Serverless",
   "pipeline_version": "1.0.0",
-  "generated_at": "2026-08-22T10:37:01.517530+00:00",
+  "generated_at": "2026-09-02T17:54:40.812003+00:00",
   "execution": {
-    "started_at": "2026-08-22T10:36:45.459508+00:00",
-    "completed_at": "2026-08-22T10:37:01.517530+00:00",
-    "runtime_seconds": 16.06,
+    "started_at": "2026-09-02T17:54:28.888404+00:00",
+    "completed_at": "2026-09-02T17:54:40.812003+00:00",
+    "runtime_seconds": 11.92,
     "status": "PASS"
   },
   "redshift": {
@@ -57,10 +57,10 @@
     },
     "analytics_view_count": 4,
     "analytics_metrics": {
-      "fiscal_year_rows": 20,
+      "fiscal_year_rows": 4,
       "total_events": 100000,
       "total_distinct_events": 100000,
-      "total_payment_amount": "150580975432.60"
+      "total_payment_amount": "155848418193.58"
     },
     "validation_status": "PASS"
   },
